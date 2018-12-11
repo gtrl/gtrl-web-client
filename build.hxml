@@ -1,5 +1,9 @@
--js bin/app.js
+-js bin/scr/app.js
 -main gtrl.web.App
 -cp src
+-lib om.core
+#-lib chartjs
+#-lib heaps
 -dce full
 -debug
+-cmd lessc bin/css/app.less bin/css/app.css

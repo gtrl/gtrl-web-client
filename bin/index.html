@@ -1,99 +1,34 @@
 <!DOCTYPE html>
 <html>
 	<head>
+
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
 		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0">
 		<meta name="theme-color" content="#000">
+
 		<title>GTRL</title>
-		<link rel="stylesheet" href="app.css">
-		<script src="charts_utils.js"></script>
-		<script src="charts.js"></script>
-		<script src="app.js"></script>
-		<script>
-			var chart;
-			var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-			var config = {
-				type: 'line',
-				data: {
-					labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-					datasets: [{
-						label: 'My First dataset',
-						backgroundColor: window.chartColors.red,
-						borderColor: window.chartColors.red,
-						data: [
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor()
-						],
-						fill: false,
-					}, {
-						label: 'My Second dataset',
-						fill: false,
-						backgroundColor: window.chartColors.blue,
-						borderColor: window.chartColors.blue,
-						data: [
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor(),
-							randomScalingFactor()
-						],
-					}]
-				},
-				options: {
-					responsive: true,
-					title: {
-						display: true,
-						text: 'Chart.js Line Chart'
-					},
-					tooltips: {
-						mode: 'index',
-						intersect: false,
-					},
-					hover: {
-						mode: 'nearest',
-						intersect: true
-					},
-					scales: {
-						xAxes: [{
-							display: true,
-							scaleLabel: {
-								display: true,
-								labelString: 'Month'
-							}
-						}],
-						yAxes: [{
-							display: true,
-							scaleLabel: {
-								display: true,
-								labelString: 'Value'
-							}
-						}]
-					}
-				}
-			};
 
-			window.onload = function(){
+		<link rel="shortcut icon" href="favicon.ico">
+		<link rel="stylesheet" href="css/app.css">
 
-				var ctx = document.getElementById('chart');
-				chart = Chart.Line( ctx, config );
+		<!--
+		<script src="scr/d3.min.js"></script>
+		-->
+		<script src="scr/charts.js"></script>
+		<script src="scr/app.js"></script>
 
-				config.data.datasets.forEach(function(dataset) {
-				dataset.data = dataset.data.map(function() {
-						return randomScalingFactor();
-					});
-				});
-			}
-		</script>
 	</head>
+
 	<body>
+		<div id="status"></div>
+		<button id="reload">RELOAD</button>
 		<canvas id="chart"></canvas>
+		<div id="realtime"></div>
+		<div id="settings">
+			<input type="text" name="service" value="192.168.0.200">
+			<input type="number" name="port" value="9000">
+		</div>
 	</body>
+
 </html>
