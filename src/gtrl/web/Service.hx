@@ -10,10 +10,12 @@ class Service {
 	public var port(default,null) : Int;
 
 	var socket : Socket;
+	var url : String;
 
 	public function new( host : String, port : Int ) {
 		this.host = host;
 		this.port = port;
+		url = 'http://$host:$port';
 	}
 
 	public function connect( callback : ?Error->Void ) {
@@ -38,20 +40,23 @@ class Service {
 		socket.close();
 	}
 
-	public function loadData() : Promise<Dynamic> {
-		//var now = Date.now();
-		//var date = new Date( now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds() );
-		//return fetchData( 'data', { time : date.getTime() } );
-		return fetchData( 'data' );
+	public function loadSetup() : Promise<gtrl.Setup> {
+		return fetch( 'setup' );
 	}
 
-	function fetchData( ?path : String, ?data : Dynamic ) : Promise<Dynamic> {
-		var url = 'http://$host:$port';
-		if( path != null ) url += '/$path';
-		return window.fetch( url, {
+	public function loadData( ?numDays : Int ) : Promise<Array<gtrl.db.Entry>> {
+		var now = Date.now();
+		var days = now.getDate();
+		if( numDays != null ) days -= numDays;
+		var date = new Date( now.getFullYear(), now.getMonth(), days, now.getHours(), now.getMinutes(), now.getSeconds() );
+		return fetch( 'data', { time : date.getTime() } );
+	}
+
+	function fetch<T>( path : String, ?data : Dynamic ) : Promise<T> {
+		return FetchTools.fetchJson( '$url/$path', {
 			method: (data == null) ? "GET" : "POST",
 			body: (data == null) ? null : Json.stringify( data )
-		} ).then( r -> return r.json() );
+		} );
 	}
 
 }

@@ -1,6 +1,7 @@
 -js bin/scr/app.js
 -main gtrl.web.App
 -cp src
+-cp ../gtrl-service/src
 -lib om.core
 #-lib chartjs
 #-lib heaps
