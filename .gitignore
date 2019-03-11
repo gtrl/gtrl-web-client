@@ -1,1 +1,2 @@
-bin/scr/app.js*
+app/css/*.css
+app/scr/app.js*

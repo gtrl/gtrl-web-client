@@ -1,4 +1,6 @@
 
+import Std.int;
+
 import js.Browser.console;
 import js.Browser.document;
 import js.Browser.window;
@@ -9,6 +11,7 @@ import js.html.DivElement;
 import js.html.Element;
 import js.html.InputElement;
 
+import om.ArrayTools;
 import om.Json;
 import om.Time;
 import om.FetchTools;
