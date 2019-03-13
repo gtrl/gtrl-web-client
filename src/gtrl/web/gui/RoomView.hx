@@ -5,21 +5,20 @@ import gtrl.Setup.SensorSetup;
 
 class RoomView {
 
-	static var COLORS = [
-		'rgba(255,255,255,0.8)',
-		'rgba(255,0,0,0.8)',
-		'rgba(255,255,0,1)'
-		/*
-		{ border: 'rgba(255,255,255,0.8)', background: 'rgba(255,255,255,0.1)' },
-		{ border: 'rgba(255,0,0,0.8)', background: 'rgba(255,0,0,0.1)' },
-		{ border: 'rgba(255,255,0,1)', background: 'rgba(0,0,0,0.2)' }
-		*/
+	static var COLORS_TEMPERATURE = [
+		'rgba(77, 201, 246, 1 )',
+		'rgba(246, 112, 25, 1 )',
+		'rgba(245, 55, 148, 1 )'
+	];
+	static var COLORS_HUMIDITY = [
+		'rgba(77, 201, 246, 0.2 )',
+		'rgba(246, 112, 25, 0.2 )',
+		'rgba(245, 55, 148, 0.2 )'
 	];
 
 	var element : DivElement;
 	var sensors : Map<String,SensorView>;
-	var chartTemperature : Dynamic;
-	var chartHumidity : Dynamic;
+	var chart : Dynamic;
 
 	public function new( container : Element ) {
 		element = document.createDivElement();
@@ -40,257 +39,157 @@ class RoomView {
 
 		sensors = [];
 
-		//function randValue() : Float return 20 + Math.random()*5;
+		for( i in 0...setup.sensors.length ) {
+			var sensor = setup.sensors[i];
+			var view = new SensorView( sensorsElement, sensor, COLORS_TEMPERATURE[i] );
+			sensors.set( sensor.name, view );
+		}
 
 		var canvasTemperature = document.createCanvasElement();
-		canvasTemperature.height = 100;
-		canvasTemperature.classList.add( 'chart' );
 		element.appendChild( canvasTemperature );
 
-		chartTemperature = untyped __js__( "new Chart({0},{1})", canvasTemperature.getContext2d(), {
+		var datasets = new Array<Dynamic>();
+		for( i in 0...setup.sensors.length ) {
+			var sensor = setup.sensors[i];
+			datasets.push({
+				label: sensor.name+'C',
+				yAxisID: 'y-axis-1',
+				borderColor: COLORS_TEMPERATURE[i],
+				//backgroundColor: COLORS_HUMIDITY[i],
+				pointRadius: 2,
+				lineTension: 0,
+				data: []
+			});
+		}
+		for( i in 0...setup.sensors.length ) {
+			var sensor = setup.sensors[i];
+			datasets.push({
+				label: sensor.name+'%',
+				//type: 'bar',
+				yAxisID: 'y-axis-2',
+				borderColor: COLORS_HUMIDITY[i],
+				//borderDash: [5,5],
+				pointRadius: 0,
+				lineTension: 0,
+				data: []
+			});
+		}
+
+		chart = untyped __js__( "new Chart({0},{1})", canvasTemperature.getContext2d(), {
 			type: 'line',
 			data: {
 				labels: [],
-				datasets: [for( i in 0...setup.sensors.length ) {
-					var sensor = setup.sensors[i];
-					{
-						label: sensor.name,
-						//borderColor: 'rgba('+int( Math.random()*255 )+','+int( Math.random()*255 )+','+int( Math.random()*255 )+',0.8)',
-						borderColor: COLORS[i],
-						data: []
-					};
-				}],
+				datasets: datasets,
 			},
 			options: {
 				responsive: true,
-				title: {
-					display: true,
-					text: 'TEMPERATURE'
-				},
-				tooltips: {
+					tooltips: {
 					mode: 'index',
 					//intersect: false,
 				},
-				/*
 				hover: {
 					mode: 'nearest',
 					//intersect: true
 				},
-				*/
-				/*
-				scales: {
-					xAxes: [{
-						type: 'time'
-					}],
-					yAxes: [{
-						display: true,
-						scaleLabel: {
-							//display: true,
-							//labelString: 'TEMPERATURE'
-						}
-					}]
-				}
-				*/
-				scales: {
-					xAxes: [{
-						type: 'time',
-						display: true,
-						time: {
-							format: 'MM/DD/YYYY HH:mm',
-							// round: 'day'
-						}
-					}],
-				},
-			}
-		} );
-
-		var canvasHumidity = document.createCanvasElement();
-		canvasHumidity.classList.add( 'chart' );
-		canvasHumidity.height = 100;
-		element.appendChild( canvasHumidity );
-
-		chartHumidity = untyped __js__( "new Chart({0},{1})", canvasHumidity.getContext2d(), {
-			type: 'line',
-			data: {
-				labels: [],
-				datasets: [for( i in 0...setup.sensors.length ) {
-					var sensor = setup.sensors[i];
-					{
-						label: sensor.name,
-						//borderColor: 'rgba('+int( Math.random()*255 )+','+int( Math.random()*255 )+','+int( Math.random()*255 )+',0.8)',
-						borderColor: COLORS[i],
-						data: []
-					};
-				}],
-			},
-			options: {
-				responsive: true,
-				title: {
-					display: true,
-					text: 'HUMIDITY'
-				},
-				tooltips: {
-					mode: 'index',
-				},
-				/*
-				scales: {
-					xAxes: [{
-						type: 'time',
-						time: {
-							format: 'MM/DD/YYYY HH:mm',
-							// round: 'day'
-							tooltipFormat: 'll HH:mm'
-						},
-						scaleLabel: {
-							display: true,
-							labelString: 'Date'
-						}
-					}],
-					yAxes: [{
-						display: true,
-						labelString: 'value'
-					}]
-				}
-				*/
-				scales: {
-					xAxes: [{
-						type: 'time',
-						time: {
-							format: 'MM/DD/YYYY HH:mm',
-							// round: 'day'
-							tooltipFormat: 'll HH:mm'
-						}
-					}],
-					yAxes: [{
-						scaleLabel: {
-							display: true,
-							labelString: 'value'
-						}
-					}]
-				}
-			}
-		} );
-
-		
-		for( i in 0...setup.sensors.length ) {
-
-			var sensor = setup.sensors[i];
-
-			var view = new SensorView( sensorsElement, sensor, COLORS[i] );
-			sensors.set( sensor.name, view );
-
-			/*
-			App.service.loadSensorData( sensor.name, 1 ).then( function(data){
-
-				var last = data[data.length-1];
-				var view = sensors.get( last.sensor );
-				view.update( last.temperature, last.humidity );
-
-				//trace(chart.data.datasets[1]);
-				for( row in data ) {
-					//trace(row.time);
-					//chart.data.labels.push( row.time );
-					chartTemperature.data.labels.push( row.time );
-					//chart.data.datasets[i].data.push( row.temperature );
-					chartTemperature.data.datasets[getSensorIndex( sensor.name )].data.push( row.temperature );
-					/*
-					if( i > 0 && chart.data.labels.length > 2 ) {
-
+				elements: {
+					line: {
+						tension: 0.000001
+					},
+					point: {
+						pointStyle: 'circle'
 					}
-					* /
-
-					chartHumidity.data.labels.push( row.time );
-					chartHumidity.data.datasets[getSensorIndex( sensor.name )].data.push( row.humidity );
-
-				}
-				chartTemperature.update();
-				chartHumidity.update();
-			});
-			*/
-			
-		}
+				},
+				scales: {
+					xAxes: [{
+						type: 'time',
+						time: {
+							format: 'MM/DD/YYYY HH:mm',
+							// round: 'day'
+							tooltipFormat: 'll HH:mm'
+						}
+					}],
+					yAxes: [
+						{
+							type: 'linear',
+							id: 'y-axis-1',
+							position: 'left',
+							display: true,
+							scaleLabel: {
+								display: true,
+								labelString: 'TEMPERATURE'
+							}
+						},
+						{
+							type: 'linear',
+							id: 'y-axis-2',
+							position: 'right',
+							display: true,
+							scaleLabel: {
+								display: true,
+								labelString: 'HUMIDITY'
+							},
+							gridLines: {
+								drawOnChartArea: false
+							}
+						}
+					]
+				},
+			}
+		});
 
 		App.service.loadSensorData( 1 ).then( function(data){
-		
+
 			for( i in 0...setup.sensors.length ) {
 				var sensor = setup.sensors[i];
 				var view = sensors.get( sensor.name );
 				for( i in 0...data.length ) {
 					if( data[data.length-1-i].sensor == sensor.name ) {
-						view.update( data[i].temperature, data[i].humidity );
+						view.update( data[i].time, data[i].temperature, data[i].humidity );
 						break;
 					}
 				}
 			}
 
-			var i = 0;
-			for( row in data ) {
+			for( i in 0...data.length ) {
 
-				chartTemperature.data.labels.push( Date.fromTime( row.time ) );
-				chartTemperature.data.datasets[getSensorIndex( row.sensor )].data.push( row.temperature );
-				//chartTemperature.data.datasets[getSensorIndex( row.sensor )].data.push( {x:row.temperature,y:row.humidity} );
-
-				chartHumidity.data.labels.push( Date.fromTime( row.time ) );
-				chartHumidity.data.datasets[getSensorIndex( row.sensor )].data.push( row.humidity );
-
-				//if( i > 0 ) trace( row.time> data[i-1].time, row.sensor );
-				i++;
-			}
-			chartTemperature.update();
-			chartHumidity.update();
-		});
-
+				var row = data[i];
+			
+				chart.data.labels.push( Date.fromTime( row.time ) );
 				
-					/*
-		App.service.loadSensorData( 1 ).then( function(data){
-				trace(data);
-				
-				for( row in data ) {
-					trace(row);
-					//trace(getSensorIndex( row.sensor ));
-					//trace(chart.data.datasets[getSensorIndex( row.sensor.name )]);
-					chart.data.labels.push( row.time );
-					//chart.data.labels.push( row.time );
-					chart.data.datasets[getSensorIndex( row.sensor )].data.push( row.temperature );
-				}
-				
-				chart.update();
+				var j = 0;
+				for( key in sensors.keys() ) {
+					if( key == row.sensor ) {
+						chart.data.datasets[j].data.push( row.temperature );
+						chart.data.datasets[j+setup.sensors.length].data.push( row.humidity );
+					} else {
+						
+						var data : Array<Float> = chart.data.datasets[j].data;
+						var v = (data.length == 0) ? 20 : data[data.length-1];
+						data.push( v );
 
-
-				//trace(chart.data.datasets[1]);
-				for( row in data ) {
-					trace(row.time);
-					//chart.data.labels.push( row.time );
-					chart.data.labels.push( row.time );
-					chart.data.datasets[i].data.push( row.temperature );
-					if( i > 0 && chart.data.labels.length > 2 ) {
-
+						var data : Array<Float> = chart.data.datasets[j+setup.sensors.length].data;
+						var v = (data.length == 0) ? 50 : data[data.length-1];
+						data.push( v );
 					}
+					j++;
 				}
-				chart.update();
-		});
+			}
 
-					*/
+			chart.update();
+		});
 	}
 
 	public function update( data : Dynamic ) {
+		
+		var time = data.time; //Date.fromTime( data.time );
+		//trace(time);
 
 		var view = sensors.get( data.sensor.name );
-		view.update( data.data.temperature, data.data.humidity );
+		view.update( data.time, data.data.temperature, data.data.humidity );
 
-		chartTemperature.data.labels.push( Date.fromTime( data.time ) );
-		chartTemperature.data.datasets[getSensorIndex( data.sensor.name )].data.push( data.data.temperature );
-		chartTemperature.update();
-
-		chartHumidity.data.labels.push( Date.fromTime( data.time ) );
-		chartHumidity.data.datasets[getSensorIndex( data.sensor.name )].data.push( data.data.humidity );
-		chartHumidity.update();
+		//TODO
 
 		/*
-		trace(data);
-
-		var time = data.time; //Date.now().getTime();
-
 		chartTemperature.data.labels.push( time );
 		chartTemperature.data.datasets[getSensorIndex( data.sensor.name )].data.push( data.data.temperature );
 		chartTemperature.update();
@@ -299,27 +198,6 @@ class RoomView {
 		chartHumidity.data.datasets[getSensorIndex( data.sensor.name )].data.push( data.data.humidity );
 		chartHumidity.update();
 		*/
-
-		/*
-		//chart.data.labels.push( data.time );
-		for( i in 0...chart.data.labels.length ) {
-			//trace(Std.is( chart.data.labels[i], Float));
-		//trace( cast( chart.data.labels[i], Float ) < data.time );
-			//trace( cast( chart.data.labels[i], Float ), data.time, cast( chart.data.labels[i], Float ) < data.time );
-			/*
-			if( chart.data.labels[i] < data.time ) {
-				chart.data.labels.insert( i, data.time );
-				break;
-			}
-		}
-			*/
-
-		//var sensorIndex = getSensorIndex( data.sensor.name );
-		
-		//chart.data.labels.shift();
-		//chart.data.datasets[getSensorIndex( data.sensor.name )].data.shift();
-
-	
 
 			/*
 		for( i in 0...chart.data.datasets.length ) {
@@ -333,9 +211,9 @@ class RoomView {
 		*/
 		
 		//chart.data.datasets[getSensorIndex( data.sensor.name )].data.push( data.data.temperature );
-
 	}
 
+	/*
 	function getSensorIndex( name : String ) : Int {
 		//for( i in 0...sensors.length ) if( sensors[i] == name ) return i;
 		var i = 0;
@@ -346,6 +224,7 @@ class RoomView {
 		}
 		return null;
 	}
+	*/
 }
 
 private class SensorView {
@@ -364,6 +243,13 @@ private class SensorView {
 		element.classList.add( 'sensor' );
 		element.style.color = color;
 		container.appendChild( element );
+		
+		/*
+		trace(setup.name, setup.enabled,!setup.enabled);
+		if( setup.enabled != null && !setup.enabled ) {
+			element.classList.add( 'disabled' );
+		}
+		*/
 
 		var name = document.createDivElement();
 		name.classList.add( 'name' );
@@ -385,7 +271,7 @@ private class SensorView {
 		element.addEventListener( 'click', handleClick, false );
 	}
 	
-	public function update( temperature : Float, humidity : Float ) {
+	public function update( time : Float, temperature : Float, humidity : Float ) {
 
 		//trace(this.temperature.textContent.length==0,temperature);
 
@@ -396,7 +282,9 @@ private class SensorView {
 		}
 
 		this.temperature.textContent = ''+temperature;
-		this.humidity.textContent = ''+humidity;
+		this.humidity.textContent = ''+Std.int( humidity );
+
+		element.title = Date.fromTime( time ).toString(); //.now().toString();
 	}
 
 	function handleClick(e) {
