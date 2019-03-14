@@ -35,7 +35,7 @@ class Service {
 		});
 	}
 
-	public function loadSensorData( ?sensor : String, ?numDays : Int ) : Promise<Array<gtrl.db.Entry>> {
+	public function loadSensorData( ?sensor : String, ?numDays = 1 ) : Promise<Array<gtrl.db.Entry>> {
 		var now = Date.now();
 		var days = now.getDate();
 		if( numDays != null ) days -= numDays;

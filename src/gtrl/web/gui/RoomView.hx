@@ -11,12 +11,13 @@ class RoomView {
 		'rgba(77, 201, 246, 1 )',
 	];
 	static var COLORS_HUMIDITY = [
-		'rgba(245, 55, 148, 0.2 )',
-		'rgba(246, 112, 25, 0.2 )',
-		'rgba(77, 201, 246, 0.2 )',
+		'rgba(245, 55, 148, 0.5 )',
+		'rgba(246, 112, 25, 0.5 )',
+		'rgba(77, 201, 246, 0.5 )',
 	];
 
 	var element : DivElement;
+	var numSensors : Int;
 	var sensors : Map<String,SensorView>;
 	var chart : Dynamic;
 
@@ -27,6 +28,8 @@ class RoomView {
 	}
 
 	public function init( setup : RoomSetup ) {
+
+		numSensors = setup.sensors.length;
 
 		var name = document.createDivElement();
 		name.classList.add( 'name' );
@@ -42,11 +45,18 @@ class RoomView {
 		for( i in 0...setup.sensors.length ) {
 			var sensor = setup.sensors[i];
 			var view = new SensorView( sensorsElement, sensor, COLORS_TEMPERATURE[i] );
+			view.onActivate = function(active){
+				var index = getSensorIndex( sensor.name );
+				chart.data.datasets[index].hidden = chart.data.datasets[index+numSensors].hidden = !active;
+				chart.update();
+
+			}
 			sensors.set( sensor.name, view );
 		}
 
-		var canvasTemperature = document.createCanvasElement();
-		element.appendChild( canvasTemperature );
+		var canvas = document.createCanvasElement();
+		canvas.classList.add( 'chart' );
+		element.appendChild( canvas );
 
 		var datasets = new Array<Dynamic>();
 		for( i in 0...setup.sensors.length ) {
@@ -55,12 +65,15 @@ class RoomView {
 				label: sensor.name,
 				yAxisID: 'y-axis-1',
 				borderColor: COLORS_TEMPERATURE[i],
-				//backgroundColor: COLORS_HUMIDITY[i],
+				//backgroundColor: 'rgba(100,100,100,0.2)',
 				pointRadius: 2,
 				lineTension: 0,
+				//display: false,
+				//hidden: true,
 				data: []
 			});
 		}
+
 		for( i in 0...setup.sensors.length ) {
 			var sensor = setup.sensors[i];
 			datasets.push({
@@ -74,7 +87,7 @@ class RoomView {
 			});
 		}
 
-		chart = untyped __js__( "new Chart({0},{1})", canvasTemperature.getContext2d(), {
+		chart = untyped __js__( "new Chart({0},{1})", canvas.getContext2d(), {
 			type: 'line',
 			data: {
 				labels: [],
@@ -82,7 +95,7 @@ class RoomView {
 			},
 			options: {
 				responsive: true,
-					tooltips: {
+				tooltips: {
 					mode: 'index',
 					//intersect: false,
 				},
@@ -98,13 +111,20 @@ class RoomView {
 						pointStyle: 'circle'
 					}
 				},
+				legend: {
+					display: false
+				},
 				scales: {
 					xAxes: [{
 						type: 'time',
 						time: {
-							format: 'MM/DD/YYYY HH:mm',
+							//format: 'MM/DD/YYYY HH:mm',
+							parser: 'MM/DD/YYYY HH:mm',
 							// round: 'day'
 							tooltipFormat: 'll HH:mm'
+						},
+						gridLines: {
+							display: true
 						}
 					}],
 					yAxes: [
@@ -116,7 +136,15 @@ class RoomView {
 							scaleLabel: {
 								display: true,
 								labelString: 'TEMPERATURE'
+							},
+							/*
+							gridLines: {
+								display: true,
+								drawBorder: true,
+								drawOnChartArea: true,
+								drawTicks: true,
 							}
+							*/
 						},
 						{
 							type: 'linear',
@@ -138,10 +166,8 @@ class RoomView {
 
 		App.service.loadSensorData( 1 ).then( function(data){
 
-			
 			for( i in 0...setup.sensors.length ) {
 				var sensor = setup.sensors[i];
-				trace(sensor.name);
 				var view = sensors.get( sensor.name );
 				for( i in 0...data.length ) {
 					var index = data.length-1-i;
@@ -151,72 +177,63 @@ class RoomView {
 					}
 				}
 			}
-			
 
 			for( i in 0...data.length ) {
-
 				var row = data[i];
-			
 				chart.data.labels.push( Date.fromTime( row.time ) );
-				
 				var j = 0;
 				for( key in sensors.keys() ) {
 					if( key == row.sensor ) {
 						chart.data.datasets[j].data.push( row.temperature );
-						chart.data.datasets[j+setup.sensors.length].data.push( row.humidity );
+						chart.data.datasets[j+numSensors].data.push( row.humidity );
 					} else {
 						
 						var data : Array<Float> = chart.data.datasets[j].data;
 						var v = (data.length == 0) ? 20 : data[data.length-1];
 						data.push( v );
 
-						var data : Array<Float> = chart.data.datasets[j+setup.sensors.length].data;
+						var data : Array<Float> = chart.data.datasets[j+numSensors].data;
 						var v = (data.length == 0) ? 50 : data[data.length-1];
 						data.push( v );
 					}
 					j++;
 				}
 			}
-
 			chart.update();
 		});
 	}
 
-	public function update( data : Dynamic ) {
+	public function update( entry : Dynamic ) {
 		
-		var time = data.time; //Date.fromTime( data.time );
-		//trace(time);
+		trace(entry);
+		var time = entry.time; //Date.fromTime( data.time );
 
-		var view = sensors.get( data.sensor.name );
-		view.update( data.time, data.data.temperature, data.data.humidity );
+		var view = sensors.get( entry.sensor.name );
+		view.update( time, entry.data.temperature, entry.data.humidity );
 
-		//TODO
-
-		/*
-		chartTemperature.data.labels.push( time );
-		chartTemperature.data.datasets[getSensorIndex( data.sensor.name )].data.push( data.data.temperature );
-		chartTemperature.update();
-
-		chartHumidity.data.labels.push( time );
-		chartHumidity.data.datasets[getSensorIndex( data.sensor.name )].data.push( data.data.humidity );
-		chartHumidity.update();
-		*/
-
-			/*
-		for( i in 0...chart.data.datasets.length ) {
-			var dataset = chart.data.datasets[i];
-			if( i == sensorIndex ) {
-				dataset.data.push( data.data.temperature );
+		chart.data.labels.push( Date.fromTime( entry.time ) );
+		var j = 0;
+		for( key in sensors.keys() ) {
+			if( key == entry.sensor.name ) {
+				//trace(key);
+				chart.data.datasets[j].data.push( entry.data.temperature );
+				chart.data.datasets[j+numSensors].data.push( entry.data.humidity );
 			} else {
-				dataset.data.push( data.data[Std.int(data.data.length-1)] );
-			}
-		}
-		*/
-		
-		//chart.data.datasets[getSensorIndex( data.sensor.name )].data.push( data.data.temperature );
-	}
+				//chart.data.datasets[j].data.push( entry.data.temperature );
+				//chart.data.datasets[j+numSensors].data.push( entry.data.humidity );
+				var data : Array<Float> = chart.data.datasets[j].data;
+				var v = (data.length == 0) ? 20 : data[data.length-1];
+				data.push( v );
 
-	/*
+				var data : Array<Float> = chart.data.datasets[j+numSensors].data;
+				var v = (data.length == 0) ? 50 : data[data.length-1];
+				data.push( v );
+			}
+			j++;
+		}
+		chart.update();	
+	}
+	
 	function getSensorIndex( name : String ) : Int {
 		//for( i in 0...sensors.length ) if( sensors[i] == name ) return i;
 		var i = 0;
@@ -227,14 +244,13 @@ class RoomView {
 		}
 		return null;
 	}
-	*/
 }
 
 private class SensorView {
 
 	public dynamic function onActivate( active : Bool ) {}
 	
-	public var active(default,null) = false;
+	public var active(default,null) = true;
 
 	var element : Element;
 	var temperature : Element;
@@ -291,12 +307,11 @@ private class SensorView {
 	}
 
 	function handleClick(e) {
+		active = !active;
 		if( active ) {
-			active = false;
-			element.classList.remove( 'active' );
+			element.classList.remove( 'inactive' );
 		} else {
-			active = true;
-			element.classList.add( 'active' );
+			element.classList.add( 'inactive' );
 		}
 		onActivate( active );
 	}
