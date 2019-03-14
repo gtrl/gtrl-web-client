@@ -6,14 +6,14 @@ import gtrl.Setup.SensorSetup;
 class RoomView {
 
 	static var COLORS_TEMPERATURE = [
-		'rgba(77, 201, 246, 1 )',
+		'rgba(245, 55, 148, 1 )',
 		'rgba(246, 112, 25, 1 )',
-		'rgba(245, 55, 148, 1 )'
+		'rgba(77, 201, 246, 1 )',
 	];
 	static var COLORS_HUMIDITY = [
-		'rgba(77, 201, 246, 0.2 )',
+		'rgba(245, 55, 148, 0.2 )',
 		'rgba(246, 112, 25, 0.2 )',
-		'rgba(245, 55, 148, 0.2 )'
+		'rgba(77, 201, 246, 0.2 )',
 	];
 
 	var element : DivElement;
@@ -52,7 +52,7 @@ class RoomView {
 		for( i in 0...setup.sensors.length ) {
 			var sensor = setup.sensors[i];
 			datasets.push({
-				label: sensor.name+'C',
+				label: sensor.name,
 				yAxisID: 'y-axis-1',
 				borderColor: COLORS_TEMPERATURE[i],
 				//backgroundColor: COLORS_HUMIDITY[i],
@@ -64,11 +64,10 @@ class RoomView {
 		for( i in 0...setup.sensors.length ) {
 			var sensor = setup.sensors[i];
 			datasets.push({
-				label: sensor.name+'%',
-				//type: 'bar',
+				label: sensor.name,
 				yAxisID: 'y-axis-2',
 				borderColor: COLORS_HUMIDITY[i],
-				//borderDash: [5,5],
+				borderDash: [2,2],
 				pointRadius: 0,
 				lineTension: 0,
 				data: []
@@ -139,16 +138,20 @@ class RoomView {
 
 		App.service.loadSensorData( 1 ).then( function(data){
 
+			
 			for( i in 0...setup.sensors.length ) {
 				var sensor = setup.sensors[i];
+				trace(sensor.name);
 				var view = sensors.get( sensor.name );
 				for( i in 0...data.length ) {
-					if( data[data.length-1-i].sensor == sensor.name ) {
-						view.update( data[i].time, data[i].temperature, data[i].humidity );
+					var index = data.length-1-i;
+					if( data[index].sensor == sensor.name ) {
+						view.update( data[index].time, data[index].temperature, data[index].humidity );
 						break;
 					}
 				}
 			}
+			
 
 			for( i in 0...data.length ) {
 
