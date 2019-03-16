@@ -6,14 +6,14 @@ import gtrl.Setup.SensorSetup;
 class RoomView {
 
 	static var COLORS_TEMPERATURE = [
-		'rgba(245, 55, 148, 1 )',
-		'rgba(246, 112, 25, 1 )',
-		'rgba(77, 201, 246, 1 )',
+		'rgba(245, 55, 148, 0.8)',
+		'rgba(246, 112, 25, 0.8)',
+		'rgba(77, 201, 246, 0.8)',
 	];
 	static var COLORS_HUMIDITY = [
-		'rgba(245, 55, 148, 0.5 )',
-		'rgba(246, 112, 25, 0.5 )',
-		'rgba(77, 201, 246, 0.5 )',
+		'rgba(245, 55, 148, 0.2 )',
+		'rgba(246, 112, 25, 0.2 )',
+		'rgba(77, 201, 246, 0.2 )',
 	];
 
 	var element : DivElement;
@@ -46,10 +46,8 @@ class RoomView {
 			var sensor = setup.sensors[i];
 			var view = new SensorView( sensorsElement, sensor, COLORS_TEMPERATURE[i] );
 			view.onActivate = function(active){
-				var index = getSensorIndex( sensor.name );
-				chart.data.datasets[index].hidden = chart.data.datasets[index+numSensors].hidden = !active;
+				chart.data.datasets[i].hidden = chart.data.datasets[i+numSensors].hidden = !active;
 				chart.update();
-
 			}
 			sensors.set( sensor.name, view );
 		}
@@ -62,15 +60,17 @@ class RoomView {
 		for( i in 0...setup.sensors.length ) {
 			var sensor = setup.sensors[i];
 			datasets.push({
+				//type: 'line',
 				label: sensor.name,
 				yAxisID: 'y-axis-1',
 				borderColor: COLORS_TEMPERATURE[i],
 				//backgroundColor: 'rgba(100,100,100,0.2)',
-				pointRadius: 2,
-				lineTension: 0,
+				//pointRadius: 2,
+				//lineTension: 0,
 				//display: false,
 				//hidden: true,
-				data: []
+				data: [],
+				//type: 'bar'
 			});
 		}
 
@@ -80,9 +80,9 @@ class RoomView {
 				label: sensor.name,
 				yAxisID: 'y-axis-2',
 				borderColor: COLORS_HUMIDITY[i],
-				borderDash: [2,2],
-				pointRadius: 0,
-				lineTension: 0,
+				borderDash: [5,4],
+				//pointRadius: 0,
+				//lineTension: 0,
 				data: []
 			});
 		}
@@ -105,10 +105,14 @@ class RoomView {
 				},
 				elements: {
 					line: {
-						tension: 0.000001
+						borderWidth: 2,
+						tension: 0.1
+						//stepped: true
 					},
 					point: {
-						pointStyle: 'circle'
+						//backgroundColor:
+						pointStyle: 'circle',
+						radius: 1
 					}
 				},
 				legend: {
@@ -116,22 +120,23 @@ class RoomView {
 				},
 				scales: {
 					xAxes: [{
-						type: 'time',
+						gridLines: {
+							display: true
+						},
 						time: {
 							//format: 'MM/DD/YYYY HH:mm',
 							parser: 'MM/DD/YYYY HH:mm',
 							// round: 'day'
-							tooltipFormat: 'll HH:mm'
+							tooltipFormat: 'll HH:mm',
+							//unit: 'month'
 						},
-						gridLines: {
-							display: true
-						}
+						type: 'time',
 					}],
 					yAxes: [
 						{
 							type: 'linear',
 							id: 'y-axis-1',
-							position: 'left',
+							position: 'right',
 							display: true,
 							scaleLabel: {
 								display: true,
@@ -145,19 +150,29 @@ class RoomView {
 								drawTicks: true,
 							}
 							*/
+							ticks: {
+								callback: function(value,index,values){
+									return value+'°';
+								}
+							}
 						},
 						{
-							type: 'linear',
-							id: 'y-axis-2',
-							position: 'right',
 							display: true,
+							gridLines: {
+								drawOnChartArea: false
+							},
+							id: 'y-axis-2',
+							position: 'left',
 							scaleLabel: {
 								display: true,
 								labelString: 'HUMIDITY'
 							},
-							gridLines: {
-								drawOnChartArea: false
-							}
+							ticks: {
+								callback: function(value,index,values){
+									return value+'%';
+								}
+							},
+							type: 'linear',
 						}
 					]
 				},
@@ -165,6 +180,8 @@ class RoomView {
 		});
 
 		App.service.loadSensorData( 1 ).then( function(data){
+
+			trace(data);
 
 			for( i in 0...setup.sensors.length ) {
 				var sensor = setup.sensors[i];
@@ -270,20 +287,20 @@ private class SensorView {
 		}
 		*/
 
-		var name = document.createDivElement();
+		var name = document.createElement('h4');
 		name.classList.add( 'name' );
 		name.textContent = setup.name;
 		element.appendChild( name );
 		
-		var values = document.createDivElement();
+		var values = document.createElement('h4');
 		values.classList.add( 'values' );
 		element.appendChild( values );
 
-		temperature = document.createDivElement();
+		temperature = document.createElement('h4');
 		temperature.classList.add( 'temperature', 'value' );
 		values.appendChild( temperature );
 
-		humidity = document.createDivElement();
+		humidity = document.createElement('h4');
 		humidity.classList.add( 'humidity', 'value' );
 		values.appendChild( humidity );
 
