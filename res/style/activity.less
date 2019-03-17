@@ -1,0 +1,35 @@
+
+.activity-connect {
+	text-transform: uppercase;
+}
+
+.activity-rawdata {
+
+	table {
+		border: 1px solid #fff;
+		thead {
+			tr {
+				th {
+				}
+			}
+		}
+		tbody {
+			tr {
+				td {
+					//margin: 10px;
+					&.temperature {
+						&:after {
+							content: "°";
+						}
+					}
+					&.humidity {
+						&:after {
+							content: "%";
+						}
+					}
+				}
+			}
+		}
+
+	}
+}

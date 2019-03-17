@@ -1,9 +1,53 @@
-package gtrl.web.gui;
+package gtrl.app;
 
-import gtrl.Setup.RoomSetup;
+import gtrl.Setup;
 import gtrl.Setup.SensorSetup;
 
-class RoomView {
+class MainActivity extends Activity {
+
+	var service : Service;
+	var setup : Setup;
+	var rooms = new Map<String,RoomView>();
+
+	public function new( service : Service, setup : Setup ) {
+		super();
+		this.service = service;
+		this.setup = setup;
+	}
+
+	override function onCreate() {
+		for( r in setup ) {
+			var view = new RoomView( element, r );
+			rooms.set( r.name, view );
+		}
+	}
+
+	override function onStart() {
+		var roomNName = 'BOX';
+		return new Promise( function(resolve,reject){
+			service.loadSensorData( 1 ).then( function(data){
+				trace(data);
+				rooms.get( roomNName ).init( data );
+				resolve(null);
+			});
+		});
+	}
+
+	override function onResume() {
+		service.onDisconnect = function(){
+			replace( new gtrl.app.ConnectActivity() );
+			//document.body.innerHTML = '';
+			//document.body.textContent = 'DISCONNECTED';
+				//haxe.Timer.delay( connectService, 1000 );
+		}
+	}
+
+	override function onPause() {
+		service.onDisconnect = null;
+	}
+}
+
+private class RoomView {
 
 	static var COLORS_TEMPERATURE = [
 		'rgba(245, 55, 148, 0.8)',
@@ -21,13 +65,11 @@ class RoomView {
 	var sensors : Map<String,SensorView>;
 	var chart : Dynamic;
 
-	public function new( container : Element ) {
+	public function new( container : Element, setup : RoomSetup ) {
+
 		element = document.createDivElement();
 		element.classList.add( 'room' );
 		container.appendChild( element );
-	}
-
-	public function init( setup : RoomSetup ) {
 
 		numSensors = setup.sensors.length;
 
@@ -178,44 +220,41 @@ class RoomView {
 				},
 			}
 		});
+	}
 
-		App.service.loadSensorData( 1 ).then( function(data){
+	public function init( data : Array<Dynamic> ) {
 
-			//trace(data);
-
-			for( i in 0...setup.sensors.length ) {
-				var sensor = setup.sensors[i];
-				var view = sensors.get( sensor.name );
-				for( i in 0...data.length ) {
-					var index = data.length-1-i;
-					if( data[index].sensor == sensor.name ) {
-						view.update( data[index].time, data[index].temperature, data[index].humidity );
-						break;
-					}
-				}
-			}
-
+		for( s in sensors.keys() ) {
+			var view = sensors.get( s );
 			for( i in 0...data.length ) {
-				var row = data[i];
-				chart.data.labels.push( Date.fromTime( row.time ) );
-				var j = 0;
-				for( key in sensors.keys() ) {
-					if( key == row.sensor ) {
-						chart.data.datasets[j].data.push( row.temperature );
-						chart.data.datasets[j+numSensors].data.push( row.humidity );
-					} else {
-						var data : Array<Float> = chart.data.datasets[j].data;
-						var v = (data.length == 0) ? null : data[data.length-1];
-						data.push( v );
-						var data : Array<Float> = chart.data.datasets[j+numSensors].data;
-						var v = (data.length == 0) ? null : data[data.length-1];
-						data.push( v );
-					}
-					j++;
+				var index = data.length-1-i;
+				if( data[index].sensor == s ) {
+					view.update( data[index].time, data[index].temperature, data[index].humidity );
+					break;
 				}
 			}
-			chart.update();
-		});
+		}
+
+		for( i in 0...data.length ) {
+			var row = data[i];
+			chart.data.labels.push( Date.fromTime( row.time ) );
+			var j = 0;
+			for( key in sensors.keys() ) {
+				if( key == row.sensor ) {
+					chart.data.datasets[j].data.push( row.temperature );
+					chart.data.datasets[j+numSensors].data.push( row.humidity );
+				} else {
+					var data : Array<Float> = chart.data.datasets[j].data;
+					var v = (data.length == 0) ? null : data[data.length-1];
+					data.push( v );
+					var data : Array<Float> = chart.data.datasets[j+numSensors].data;
+					var v = (data.length == 0) ? null : data[data.length-1];
+					data.push( v );
+				}
+				j++;
+			}
+		}
+		chart.update();
 	}
 
 	public function update( entry : Dynamic ) {

@@ -1,4 +1,4 @@
-package gtrl.web;
+package gtrl.app;
 
 import js.html.WebSocket as Socket;
 

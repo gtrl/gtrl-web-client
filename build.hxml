@@ -2,6 +2,7 @@
 -main gtrl.web.App
 -cp src
 -cp ../gtrl-service/src
+-lib om.app
 -lib om.core
 #-lib chartjs
 -dce full
