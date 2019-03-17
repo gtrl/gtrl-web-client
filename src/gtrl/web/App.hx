@@ -8,7 +8,9 @@ class App {
 
 	static function connectService() {
 
-		service.connect().then( function(setup){
+		service.connect().then( function(setup) {
+
+			//trace(setup);
 
 			document.body.innerHTML = '';
 			

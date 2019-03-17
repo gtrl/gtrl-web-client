@@ -80,8 +80,8 @@ class RoomView {
 				label: sensor.name,
 				yAxisID: 'y-axis-2',
 				borderColor: COLORS_HUMIDITY[i],
-				borderDash: [5,4],
-				//pointRadius: 0,
+				borderDash: [10,4],
+				pointRadius: 0,
 				//lineTension: 0,
 				data: []
 			});
@@ -181,7 +181,7 @@ class RoomView {
 
 		App.service.loadSensorData( 1 ).then( function(data){
 
-			trace(data);
+			//trace(data);
 
 			for( i in 0...setup.sensors.length ) {
 				var sensor = setup.sensors[i];
@@ -204,13 +204,11 @@ class RoomView {
 						chart.data.datasets[j].data.push( row.temperature );
 						chart.data.datasets[j+numSensors].data.push( row.humidity );
 					} else {
-						
 						var data : Array<Float> = chart.data.datasets[j].data;
-						var v = (data.length == 0) ? 20 : data[data.length-1];
+						var v = (data.length == 0) ? null : data[data.length-1];
 						data.push( v );
-
 						var data : Array<Float> = chart.data.datasets[j+numSensors].data;
-						var v = (data.length == 0) ? 50 : data[data.length-1];
+						var v = (data.length == 0) ? null : data[data.length-1];
 						data.push( v );
 					}
 					j++;
@@ -236,14 +234,11 @@ class RoomView {
 				chart.data.datasets[j].data.push( entry.data.temperature );
 				chart.data.datasets[j+numSensors].data.push( entry.data.humidity );
 			} else {
-				//chart.data.datasets[j].data.push( entry.data.temperature );
-				//chart.data.datasets[j+numSensors].data.push( entry.data.humidity );
 				var data : Array<Float> = chart.data.datasets[j].data;
-				var v = (data.length == 0) ? 20 : data[data.length-1];
+				var v = (data.length == 0) ? null : data[data.length-1];
 				data.push( v );
-
 				var data : Array<Float> = chart.data.datasets[j+numSensors].data;
-				var v = (data.length == 0) ? 50 : data[data.length-1];
+				var v = (data.length == 0) ? null : data[data.length-1];
 				data.push( v );
 			}
 			j++;
@@ -252,7 +247,6 @@ class RoomView {
 	}
 	
 	function getSensorIndex( name : String ) : Int {
-		//for( i in 0...sensors.length ) if( sensors[i] == name ) return i;
 		var i = 0;
 		for( k in sensors.keys() ) {
 			if( k == name )
@@ -287,20 +281,20 @@ private class SensorView {
 		}
 		*/
 
-		var name = document.createElement('h4');
+		var name = document.createElement('h5');
 		name.classList.add( 'name' );
 		name.textContent = setup.name;
 		element.appendChild( name );
 		
-		var values = document.createElement('h4');
+		var values = document.createElement('h5');
 		values.classList.add( 'values' );
 		element.appendChild( values );
 
-		temperature = document.createElement('h4');
+		temperature = document.createElement('h5');
 		temperature.classList.add( 'temperature', 'value' );
 		values.appendChild( temperature );
 
-		humidity = document.createElement('h4');
+		humidity = document.createElement('h5');
 		humidity.classList.add( 'humidity', 'value' );
 		values.appendChild( humidity );
 
