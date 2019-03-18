@@ -1,5 +1,5 @@
 -js app/scr/app.js
--main gtrl.web.App
+-main gtrl.App
 -cp src
 -cp ../gtrl-service/src
 -lib om.app

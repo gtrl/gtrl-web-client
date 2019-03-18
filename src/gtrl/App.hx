@@ -1,4 +1,4 @@
-package gtrl.web;
+package gtrl;
 
 class App implements om.App {
 
