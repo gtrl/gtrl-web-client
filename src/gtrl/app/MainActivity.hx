@@ -23,10 +23,10 @@ class MainActivity extends Activity {
 	}
 
 	override function onStart() {
-		var roomNName = 'BOX';
+		var roomNName = 'BOX'; //TODO
 		return new Promise( function(resolve,reject){
 			service.loadSensorData( 1 ).then( function(data){
-				trace(data);
+				//trace(data);
 				rooms.get( roomNName ).init( data );
 				resolve(null);
 			});
@@ -36,9 +36,10 @@ class MainActivity extends Activity {
 	override function onResume() {
 		service.onDisconnect = function(){
 			replace( new gtrl.app.ConnectActivity() );
-			//document.body.innerHTML = '';
-			//document.body.textContent = 'DISCONNECTED';
-				//haxe.Timer.delay( connectService, 1000 );
+		}
+		service.onData = function(entry){
+			trace(entry);
+			rooms.get( entry.room ).update( entry );
 		}
 	}
 
