@@ -3,8 +3,63 @@
 	text-transform: uppercase;
 }
 
-.activity-rawdata {
+.activity-main {
+	> .room {
+		/*
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+		*/
+		> .name {
+			display: none;
+			text-transform: uppercase;
+		}
+		> .sensors {
+			margin: 6px 10px;
+			display: flex;
+			justify-content: flex-start;
+			flex-wrap: wrap;
+			> .sensor {
+				display: table;
+				user-select: none;
+				white-space: nowrap;
+				&.inactive {
+					filter: grayscale(90%) brightness(0.5);
+				}
+				> .name {
+					display: block;
+					float: left;
+				}
+				> .values {
+					display: inline-block;
+					margin: 0px 0px 0px 8px;
+					//font-family: 'Helvetica75';
+					//font-size: 32px;
+					> .value {
+						display: inline-block;
+						margin: 0 5px;
+					}
+					> .temperature {
+						&::after {
+							content: "°";
+						}
+					}
+					> .humidity {
+						&::after {
+							content: "%";
+						}
+					}
+				}
+			}
+		}
+		> .chart-container {
+			//position: relative;
+		}
+	}
+}
 
+.activity-rawdata {
 	table {
 		border: 1px solid #fff;
 		thead {

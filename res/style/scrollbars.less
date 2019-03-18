@@ -1,0 +1,21 @@
+
+@media only screen and (min-width:30em) {
+	::-webkit-scrollbar {
+		border: none;
+		width: 6px;
+	}
+	::-webkit-scrollbar::horizontal,
+	::-webkit-scrollbar-button,
+	::-webkit-scrollbar-corner {
+		display: none !important;
+	}
+	::-webkit-scrollbar-track {
+		background: #111; //var(--background);
+	}
+	::-webkit-scrollbar-thumb {
+		background: #222; //var(--f-low);
+		&:hover {
+			background: #333; //var(--f-med);
+		}
+	}
+}
