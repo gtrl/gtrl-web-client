@@ -35,7 +35,7 @@ class MainActivity extends Activity {
 
 	override function onResume() {
 		service.onDisconnect = function(){
-			replace( new gtrl.app.ConnectActivity() );
+			App.connect();
 		}
 		service.onData = function(entry){
 			trace(entry);
@@ -45,6 +45,9 @@ class MainActivity extends Activity {
 
 	override function onPause() {
 		service.onDisconnect = null;
+		for( view in rooms ) {
+			view.dispose();
+		}
 	}
 }
 
@@ -62,6 +65,8 @@ private class RoomView {
 	];
 
 	var element : DivElement;
+	var chartContainer : DivElement;
+	var canvas : CanvasElement;
 	var numSensors : Int;
 	var sensors : Map<String,SensorView>;
 	var chart : Dynamic;
@@ -95,9 +100,18 @@ private class RoomView {
 			sensors.set( sensor.name, view );
 		}
 
-		var canvas = document.createCanvasElement();
+		//var height = Std.int(window.innerHeight-100);
+
+		chartContainer = document.createDivElement();
+		chartContainer.classList.add( 'chart-container' );
+		//chartContainer.style.height = height+'px';
+		element.appendChild( chartContainer );
+
+		canvas = document.createCanvasElement();
+		canvas.width = window.innerWidth;
+		//canvas.height = height;
 		canvas.classList.add( 'chart' );
-		element.appendChild( canvas );
+		chartContainer.appendChild( canvas );
 
 		var datasets = new Array<Dynamic>();
 		for( i in 0...setup.sensors.length ) {
@@ -107,8 +121,11 @@ private class RoomView {
 				label: sensor.name,
 				yAxisID: 'y-axis-1',
 				borderColor: COLORS_TEMPERATURE[i],
-				//backgroundColor: 'rgba(100,100,100,0.2)',
-				//pointRadius: 2,
+				//backgroundColor: COLORS_TEMPERATURE[i],
+				//backgroundColor: 'rgba(50,50,50,0.2)', //untyped Color( COLORS_TEMPERATURE[i] ).alpha( 0.2 ).rgbString(),
+				backgroundColor: untyped Color( COLORS_TEMPERATURE[i] ).alpha( 0.1 ).rgbString(),
+				//backgroundColor: 'rgba(255,100,100,0.9)',
+				pointRadius: 0,
 				//lineTension: 0,
 				//display: false,
 				//hidden: true,
@@ -116,19 +133,30 @@ private class RoomView {
 				//type: 'bar'
 			});
 		}
+		
+		datasets[0].fill = '1';
+		datasets[1].fill = '2';
+		datasets[2].fill = '2';
 
 		for( i in 0...setup.sensors.length ) {
 			var sensor = setup.sensors[i];
 			datasets.push({
+				//type: 'bar',
 				label: sensor.name,
 				yAxisID: 'y-axis-2',
 				borderColor: COLORS_HUMIDITY[i],
-				borderDash: [10,4],
+				//backgroundColor: '#ff0000',
+				//backgroundColor: 'rgba(50,50,50,0.2)',
+				//borderDash: [10,4],
 				pointRadius: 0,
 				//lineTension: 0,
 				data: []
 			});
 		}
+
+		//datasets[3].fill = '1';
+		//datasets[4].fill = '2';
+		///datasets[5].fill = '2';
 
 		chart = untyped __js__( "new Chart({0},{1})", canvas.getContext2d(), {
 			type: 'line',
@@ -138,6 +166,8 @@ private class RoomView {
 			},
 			options: {
 				responsive: true,
+				maintainAspectRatio: false,
+				//maintainAspectRatio: true,
 				tooltips: {
 					mode: 'index',
 					//intersect: false,
@@ -148,7 +178,7 @@ private class RoomView {
 				},
 				elements: {
 					line: {
-						borderWidth: 2,
+						borderWidth: 1,
 						tension: 0.1
 						//stepped: true
 					},
@@ -164,7 +194,15 @@ private class RoomView {
 				scales: {
 					xAxes: [{
 						gridLines: {
-							display: true
+							display: true,
+							drawBorder: true,
+							drawOnChartArea: true,
+							drawTicks: false,
+						},
+						ticks: {
+							//min: 0,
+							//max: 100,
+							stepSize: 10
 						},
 						time: {
 							//format: 'MM/DD/YYYY HH:mm',
@@ -181,19 +219,20 @@ private class RoomView {
 							id: 'y-axis-1',
 							position: 'right',
 							display: true,
-							scaleLabel: {
-								display: true,
-								labelString: 'TEMPERATURE'
-							},
-							/*
 							gridLines: {
 								display: true,
-								drawBorder: true,
-								drawOnChartArea: true,
-								drawTicks: true,
-							}
-							*/
+								//drawBorder: true,
+								//drawOnChartArea: true,
+								//drawTicks: true,
+							},
+							scaleLabel: {
+								display: false,
+								labelString: 'TEMPERATURE'
+							},
 							ticks: {
+								//min: 0,
+								//max: 100,
+								//stepSize: 10,
 								callback: function(value,index,values){
 									return value+'°';
 								}
@@ -207,7 +246,7 @@ private class RoomView {
 							id: 'y-axis-2',
 							position: 'left',
 							scaleLabel: {
-								display: true,
+								display: false,
 								labelString: 'HUMIDITY'
 							},
 							ticks: {
@@ -221,6 +260,8 @@ private class RoomView {
 				},
 			}
 		});
+
+		updateChartHeight();
 	}
 
 	public function init( data : Array<Dynamic> ) {
@@ -256,11 +297,16 @@ private class RoomView {
 			}
 		}
 		chart.update();
+
+		window.addEventListener( 'resize', handleWindowResize, false );
+	}
+
+	public function dispose() {
+		window.removeEventListener( 'resize', handleWindowResize );
 	}
 
 	public function update( entry : Dynamic ) {
 		
-		trace(entry);
 		var time = entry.time; //Date.fromTime( data.time );
 
 		var view = sensors.get( entry.sensor.name );
@@ -294,6 +340,19 @@ private class RoomView {
 			i++;
 		}
 		return null;
+	}
+
+	function updateChartHeight() {
+		var h = Std.int( window.innerHeight - 100 );
+		if( h < 200 ) h = 200;
+		else if( h > 800 ) h = 800;
+		chartContainer.style.height = h+'px';
+		canvas.height = h;
+		chart.render();
+	}
+
+	function handleWindowResize(e) {
+		updateChartHeight();
 	}
 }
 

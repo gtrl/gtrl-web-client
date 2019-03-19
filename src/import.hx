@@ -8,6 +8,7 @@ import js.Browser.window;
 import js.Error;
 import js.Promise;
 import js.html.ButtonElement;
+import js.html.CanvasElement;
 import js.html.DivElement;
 import js.html.Element;
 import js.html.InputElement;
