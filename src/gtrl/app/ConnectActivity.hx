@@ -32,9 +32,11 @@ class ConnectActivity extends Activity {
 
 	function connectService() {
 
-		status.textContent = 'connecting';
+		status.textContent = 'connecting $host:$port';
 
 		var service = new gtrl.app.Service( host, port );
+
+		//TODO:: service.onDisconnect
 
 		service.connect().then( function(setup) {
 
@@ -43,11 +45,17 @@ class ConnectActivity extends Activity {
 				timer = null;
 			}
 
-			status.textContent = 'connected';
+			//eplace( new SetupActivity( service, setup ) );
 
-			replace( new MainActivity( service, setup ) );
-			//replace( new SetupActivity( service, setup ) );
-			//replace( new RawDataActivity( service, setup ) );
+			status.textContent = 'loading data';
+
+			service.loadDataForDays( 1 ).then( function(data){
+				//replace( new LoadDataActivity( service, setup ) );
+				//replace( new SetupActivity( service, setup ) );
+				//replace( new RawDataActivity( service, setup ) );
+				replace( new MainActivity( service, setup, data ) );
+				//replace( new SetupActivity( service, setup ) );
+			});
 
 		}).catchError( function(e){
 			trace(e);
@@ -58,6 +66,5 @@ class ConnectActivity extends Activity {
 				connectService();
 			}
 		});
-
 	}
 }

@@ -7,12 +7,13 @@ class App implements om.App {
 
 	public static var isMobile(default,null) = om.System.isMobile();
 
-	public static function connect() {
+	public static function connectService() {
+		//if( service.connected )
 		Activity.boot( new gtrl.app.ConnectActivity( HOST, PORT ) );
 	}
 
 	static function main() {
 		console.info( 'GTRL' );
-		connect();
+		connectService();
 	}
 }

@@ -1,4 +1,11 @@
 
+.menu.activity {
+	h2.title {
+		user-select: none;
+		cursor: pointer;
+	}
+}
+
 .activity-connect {
 	.status {
 		text-transform: uppercase;
@@ -13,6 +20,7 @@
 .activity-main {
 	//width: 100%;
 	//height: 100%;
+	//background: #ff0000;
 	> .room {
 		/*
 		display: flex;
@@ -70,6 +78,45 @@
 			//height: 100%;
 			canvas.chart {
 				height: 100%;
+			}
+		}
+	}
+
+	aside.meta {
+		position: fixed;
+		right: 1rem;
+		bottom: 1rem;
+	}
+}
+
+.activity-setup {
+	padding: 16px;
+	> .rooms {
+		> .room {
+			padding: 16px;
+			background: #222;
+			> .name {
+			}
+			> .sensors {
+				display: flex;
+				//justify-content: center;
+				> .sensor {
+					margin-right: 8px;
+					padding: 16px;
+					background: #111;
+					> .name {
+					}
+					> .type {
+						&::before {
+							content: 'TYPE: ';
+						}
+					}
+					> .pin {
+						&::before {
+							content: 'PIN: ';
+						}
+					}
+				}
 			}
 		}
 	}

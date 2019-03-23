@@ -7,47 +7,68 @@ class MainActivity extends Activity {
 
 	var service : Service;
 	var setup : Setup;
+	var data : Array<Dynamic>;
 	var rooms = new Map<String,RoomView>();
 
-	public function new( service : Service, setup : Setup ) {
+	public function new( service : Service, setup : Setup, data : Array<Dynamic> ) {
 		super();
 		this.service = service;
 		this.setup = setup;
+		this.data = data;
 	}
 
 	override function onCreate() {
+		
+		//var last = data[data.length-1];
+		//document.title = 'MID '+data.temperature+'° '+data.humidity+'%';
+
 		for( r in setup ) {
 			var view = new RoomView( element, r );
 			rooms.set( r.name, view );
 		}
-	}
 
-	override function onStart() {
-		var roomNName = 'BOX'; //TODO
-		return new Promise( function(resolve,reject){
-			service.loadSensorData( 1 ).then( function(data){
-				//trace(data);
-				rooms.get( roomNName ).init( data );
-				resolve(null);
-			});
-		});
+		var meta = document.createElement( 'aside' );
+		meta.classList.add( 'meta' );
+
+		var settings = document.createElement('i');
+		settings.classList.add( 'fas', 'fa-cog' );
+		meta.appendChild( settings );
+		
+		/*
+		var database = document.createElement('i');
+		database.classList.add( 'fas', 'fa-database' );
+		meta.appendChild( database );
+		*/
+
+		element.appendChild( meta );
 	}
 
 	override function onResume() {
+
+		var roomNName = 'BOX'; //TODO
+		rooms.get( roomNName ).init( data );
+
 		service.onDisconnect = function(){
-			App.connect();
+			App.connectService();
 		}
 		service.onData = function(entry){
 			trace(entry);
+			if( entry.sensor.name == 'MID' )
+				document.title = 'MID '+entry.data.temperature+'° '+entry.data.humidity+'%';
 			rooms.get( entry.room ).update( entry );
 		}
+
+		document.querySelector( 'i.fa-cog' ).onclick = function(){
+			push( new SetupActivity( service, setup ) );
+		}
+
+		//for( view in rooms ) view.render();
 	}
 
 	override function onPause() {
 		service.onDisconnect = null;
-		for( view in rooms ) {
-			view.dispose();
-		}
+		service.onData = null;
+		for( view in rooms ) view.dispose();
 	}
 }
 
@@ -125,8 +146,8 @@ private class RoomView {
 				//backgroundColor: 'rgba(50,50,50,0.2)', //untyped Color( COLORS_TEMPERATURE[i] ).alpha( 0.2 ).rgbString(),
 				backgroundColor: untyped Color( COLORS_TEMPERATURE[i] ).alpha( 0.1 ).rgbString(),
 				//backgroundColor: 'rgba(255,100,100,0.9)',
-				pointRadius: 0,
-				//lineTension: 0,
+				//pointRadius: 0.5,
+				//lineTension: 0.05,
 				//display: false,
 				//hidden: true,
 				data: [],
@@ -196,13 +217,16 @@ private class RoomView {
 						gridLines: {
 							display: true,
 							drawBorder: true,
-							drawOnChartArea: true,
-							drawTicks: false,
+							//drawOnChartArea: false,
+							//drawTicks: false,
+							color: '#111'
 						},
 						ticks: {
 							//min: 0,
 							//max: 100,
-							stepSize: 10
+							//stepSize: 100
+							fontFamily: 'Anonymous Pro',
+							fontSize: 11
 						},
 						time: {
 							//format: 'MM/DD/YYYY HH:mm',
@@ -224,16 +248,23 @@ private class RoomView {
 								//drawBorder: true,
 								//drawOnChartArea: true,
 								//drawTicks: true,
+								//color: ['#111','#222','#111','#222','#111','#111','#111','#111','#111','#111']
+								color: '#111',
 							},
 							scaleLabel: {
 								display: false,
 								labelString: 'TEMPERATURE'
 							},
 							ticks: {
-								//min: 0,
+								//min: 20,
 								//max: 100,
-								//stepSize: 10,
+								stepSize: 0.5,
+								//suggestedMin: 20,
+								//suggestedMax: 25,
+								fontFamily: 'Anonymous Pro',
+								fontSize: 11,
 								callback: function(value,index,values){
+									//trace(value,index,values);
 									return value+'°';
 								}
 							}
@@ -241,7 +272,8 @@ private class RoomView {
 						{
 							display: true,
 							gridLines: {
-								drawOnChartArea: false
+								drawOnChartArea: false,
+								color: '#111'
 							},
 							id: 'y-axis-2',
 							position: 'left',
@@ -250,6 +282,8 @@ private class RoomView {
 								labelString: 'HUMIDITY'
 							},
 							ticks: {
+								fontFamily: 'Anonymous Pro',
+								fontSize: 11,
 								callback: function(value,index,values){
 									return value+'%';
 								}
@@ -299,6 +333,10 @@ private class RoomView {
 		chart.update();
 
 		window.addEventListener( 'resize', handleWindowResize, false );
+	}
+
+	public function render() {
+		chart.render();
 	}
 
 	public function dispose() {
