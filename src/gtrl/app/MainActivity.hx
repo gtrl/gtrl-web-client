@@ -49,7 +49,7 @@ class MainActivity extends Activity {
 		rooms.get( roomNName ).init( data );
 
 		service.onDisconnect = function(){
-			App.connectService();
+			replace( new gtrl.app.ConnectActivity( Service.HOST, Service.PORT ) );
 		}
 		service.onData = function(entry){
 			trace(entry);
@@ -63,12 +63,27 @@ class MainActivity extends Activity {
 		}
 
 		//for( view in rooms ) view.render();
+
+		window.addEventListener( 'keydown', handleKeyDown, false );
 	}
 
 	override function onPause() {
 		service.onDisconnect = null;
 		service.onData = null;
 		for( view in rooms ) view.dispose();
+		window.removeEventListener( 'keydown', handleKeyDown );
+	}
+
+	function handleKeyDown(e) {
+		//trace(e.keyCode);
+		switch e.keyCode {
+		case 82: // R
+			if( e.shiftKey ) {
+				service.requestSensorRead().then( function(r){
+					//trace(r);
+				});
+			}
+		}
 	}
 }
 
@@ -381,9 +396,11 @@ private class RoomView {
 	}
 
 	function updateChartHeight() {
-		var h = Std.int( window.innerHeight - 100 );
-		if( h < 200 ) h = 200;
-		else if( h > 800 ) h = 800;
+		var w = Std.int( window.innerWidth );
+		if( w < 200 ) w = 200;
+		var h = Std.int( window.innerHeight );
+		if( h > w ) h = w;
+		else if( h < 200 ) h = 200;
 		chartContainer.style.height = h+'px';
 		canvas.height = h;
 		chart.render();

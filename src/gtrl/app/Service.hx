@@ -4,6 +4,9 @@ import js.html.WebSocket as Socket;
 
 class Service {
 
+	public static inline var HOST = '192.168.0.200';
+	public static inline var PORT = 9000;
+
 	public dynamic function onDisconnect() {}
 	public dynamic function onData( data : Dynamic ) {}
 
@@ -69,6 +72,10 @@ class Service {
 		// return fetch( 'data', filter );
 	}
 	*/
+
+	public function requestSensorRead() : Promise<Dynamic> {
+		return fetch( 'read', {} );
+	}
 
 	function fetch<T>( path : String, ?data : Dynamic ) : Promise<T> {
 		return FetchTools.fetchJson( 'http://$host:$port/$path', {
