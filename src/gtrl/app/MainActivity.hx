@@ -29,6 +29,17 @@ class MainActivity extends Activity {
 
 		var meta = document.createElement( 'aside' );
 		meta.classList.add( 'meta' );
+		
+		var sync = document.createElement('i');
+		sync.classList.add( 'fas', 'fa-sync' );
+		meta.appendChild( sync );
+		
+		/*
+		var cam = document.createElement('i');
+		cam.classList.add( 'fas', 'fa-video' );
+		cam.onclick = function() push( new CameraActivity() ); //TODO
+		meta.appendChild( cam );
+		*/
 
 		var settings = document.createElement('i');
 		settings.classList.add( 'fas', 'fa-cog' );
@@ -41,6 +52,14 @@ class MainActivity extends Activity {
 		*/
 
 		element.appendChild( meta );
+
+		/*
+		var camera = document.createImageElement();
+		camera.classList.add( 'camera' );
+		camera.src = 'http://192.168.0.200:8000/stream.mjpg';
+		element.appendChild( camera );
+		*/
+		
 	}
 
 	override function onResume() {
@@ -53,11 +72,14 @@ class MainActivity extends Activity {
 		}
 		service.onData = function(entry){
 			trace(entry);
-			if( entry.sensor.name == 'MID' )
-				document.title = 'MID '+entry.data.temperature+'° '+entry.data.humidity+'%';
+			if( entry.sensor.name == 'TOP' )
+				document.title = 'TOP '+entry.data.temperature+'° '+entry.data.humidity+'%';
 			rooms.get( entry.room ).update( entry );
 		}
 
+		document.querySelector( 'i.fa-sync' ).onclick = function(){
+			requestSensorRead();
+		}
 		document.querySelector( 'i.fa-cog' ).onclick = function(){
 			push( new SetupActivity( service, setup ) );
 		}
@@ -78,16 +100,23 @@ class MainActivity extends Activity {
 		//trace(e.keyCode);
 		switch e.keyCode {
 		case 82: // R
-			if( e.shiftKey ) {
-				service.requestSensorRead().then( function(r){
-					//trace(r);
-				});
-			}
+			requestSensorRead();
 		}
+	}
+
+	function requestSensorRead() {
+		//var btn = document.querySelector( 'i.fa-sync' );
+		//btn.classList.add( 'active' );
+		service.requestSensorRead().then( function(r){
+			//trace(r);
+		});
 	}
 }
 
 private class RoomView {
+
+	static inline var WARN_TEMPERATURE_MIN = 15;
+	static inline var WARN_TEMPERATURE_MAX = 27;
 
 	static var COLORS_TEMPERATURE = [
 		'rgba(245, 55, 148, 0.8)',
@@ -153,7 +182,7 @@ private class RoomView {
 		for( i in 0...setup.sensors.length ) {
 			var sensor = setup.sensors[i];
 			datasets.push({
-				//type: 'line',
+				type: 'line',
 				label: sensor.name,
 				yAxisID: 'y-axis-1',
 				borderColor: COLORS_TEMPERATURE[i],
@@ -166,7 +195,6 @@ private class RoomView {
 				//display: false,
 				//hidden: true,
 				data: [],
-				//type: 'bar'
 			});
 		}
 		
@@ -177,11 +205,11 @@ private class RoomView {
 		for( i in 0...setup.sensors.length ) {
 			var sensor = setup.sensors[i];
 			datasets.push({
-				//type: 'bar',
+				type: 'line',
 				label: sensor.name,
 				yAxisID: 'y-axis-2',
 				borderColor: COLORS_HUMIDITY[i],
-				//backgroundColor: '#ff0000',
+				//backgroundColor: COLORS_HUMIDITY[i],
 				//backgroundColor: 'rgba(50,50,50,0.2)',
 				//borderDash: [10,4],
 				pointRadius: 0,
@@ -189,10 +217,6 @@ private class RoomView {
 				data: []
 			});
 		}
-
-		//datasets[3].fill = '1';
-		//datasets[4].fill = '2';
-		///datasets[5].fill = '2';
 
 		chart = untyped __js__( "new Chart({0},{1})", canvas.getContext2d(), {
 			type: 'line',
@@ -221,7 +245,14 @@ private class RoomView {
 					point: {
 						//backgroundColor:
 						pointStyle: 'circle',
-						radius: 1
+						radius: 1,
+						/*
+						radius: function adjustRadiusBasedOnData( ctx ) {
+							var v = ctx.dataset.data[ctx.dataIndex];
+							trace(v);
+							return v > 23 ? 10 : 1;
+						},
+						*/
 					}
 				},
 				legend: {
@@ -237,9 +268,6 @@ private class RoomView {
 							color: '#111'
 						},
 						ticks: {
-							//min: 0,
-							//max: 100,
-							//stepSize: 100
 							fontFamily: 'Anonymous Pro',
 							fontSize: 11
 						},
@@ -271,7 +299,7 @@ private class RoomView {
 								labelString: 'TEMPERATURE'
 							},
 							ticks: {
-								//min: 20,
+								//min: 10,
 								//max: 100,
 								stepSize: 0.5,
 								//suggestedMin: 20,
@@ -280,7 +308,11 @@ private class RoomView {
 								fontSize: 11,
 								callback: function(value,index,values){
 									//trace(value,index,values);
-									return value+'°';
+									var str = value+'°';
+									switch value {
+									case 19,27: str = '–––$str';
+									}
+									return str;
 								}
 							}
 						},
@@ -361,17 +393,19 @@ private class RoomView {
 	public function update( entry : Dynamic ) {
 		
 		var time = entry.time; //Date.fromTime( data.time );
+		var temperature : Float = entry.data.temperature;
+		var humidity : Float = entry.data.humidity;
 
 		var view = sensors.get( entry.sensor.name );
-		view.update( time, entry.data.temperature, entry.data.humidity );
+		view.update( time, temperature, humidity );
 
 		chart.data.labels.push( Date.fromTime( entry.time ) );
 		var j = 0;
 		for( key in sensors.keys() ) {
 			if( key == entry.sensor.name ) {
 				//trace(key);
-				chart.data.datasets[j].data.push( entry.data.temperature );
-				chart.data.datasets[j+numSensors].data.push( entry.data.humidity );
+				chart.data.datasets[j].data.push( temperature );
+				chart.data.datasets[j+numSensors].data.push( humidity );
 			} else {
 				var data : Array<Float> = chart.data.datasets[j].data;
 				var v = (data.length == 0) ? null : data[data.length-1];
@@ -382,7 +416,20 @@ private class RoomView {
 			}
 			j++;
 		}
-		chart.update();	
+		
+		/*
+		for( i in 0...chart.data.datasets.length ) {
+			chart.data.datasets[i].data.shift();
+		}
+		*/
+
+		chart.update();
+
+		//TODO
+		if( temperature >= WARN_TEMPERATURE_MAX ) {
+			var warning = new js.html.Audio( 'snd/warning.mp3' );
+			warning.play();
+		}
 	}
 	
 	function getSensorIndex( name : String ) : Int {
