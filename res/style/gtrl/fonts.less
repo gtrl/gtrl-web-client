@@ -1,0 +1,17 @@
+
+
+.font-face-helvetica( @NN; ) {
+	@font-face {
+		font-family: 'Helvetica@{NN}';
+		font-weight: normal;
+		font-style: normal;
+		//font-display: swap;
+		src:
+			url('@{font-path}/helvetica_neue_@{NN}.woff2') format('woff2'),
+			url('@{font-path}/helvetica_neue_@{NN}.woff') format('woff'),
+			url('@{font-path}/helvetica_neue_@{NN}.ttf') format('truetype');
+	}
+}
+
+.font-face-helvetica( 55 );
+.font-face-helvetica( 75 );

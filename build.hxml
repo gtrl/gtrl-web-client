@@ -1,11 +1,8 @@
--js app/scr/app.js
+-js bin/app.js
 -main gtrl.App
--cp src
 -cp ../gtrl-service/src
 -lib om.app
--lib om.core
 #-lib chartjs
 -dce full
 -debug
-#-D web
--cmd lessc res/style/index.less app/css/app.css --include-path=$DEV/lib/enron/src
+-cmd lessc res/style/index.less bin/app.css --include-path=$DEV/lib/enron/src
