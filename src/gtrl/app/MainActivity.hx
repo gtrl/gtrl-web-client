@@ -30,9 +30,17 @@ class MainActivity extends Activity {
 		var meta = document.createElement( 'aside' );
 		meta.classList.add( 'meta' );
 		
+		
+
 		var sync = document.createElement('i');
 		sync.classList.add( 'fas', 'fa-sync' );
 		meta.appendChild( sync );
+
+		/*
+		var syncWeek = document.createButtonElement();
+		syncWeek.classList.add( 'week' );
+		syncWeek.textContent = 'week';
+		meta.appendChild( syncWeek ); */
 		
 		/*
 		var cam = document.createElement('i');
@@ -51,6 +59,26 @@ class MainActivity extends Activity {
 		meta.appendChild( database );
 		*/
 
+		var timeDay = document.createButtonElement();
+		timeDay.textContent = 'day';
+		timeDay.classList.add( 'day' );
+		meta.appendChild( timeDay );
+		
+		var timeWeek = document.createButtonElement();
+		timeWeek.textContent = 'week';
+		timeWeek.classList.add( 'week' );
+		meta.appendChild( timeWeek );
+	
+		var timeMonth = document.createButtonElement();
+		timeMonth.textContent = 'month';
+		timeMonth.classList.add( 'month' );
+		meta.appendChild( timeMonth );
+	
+		var timeGrow = document.createButtonElement();
+		timeGrow.textContent = 'grow';
+		timeGrow.classList.add( 'grow' );
+		meta.appendChild( timeGrow );
+		
 		element.appendChild( meta );
 
 		/*
@@ -80,6 +108,20 @@ class MainActivity extends Activity {
 		document.querySelector( 'i.fa-sync' ).onclick = function(){
 			requestSensorRead();
 		}
+		
+		document.querySelector( 'button.day' ).onclick = function(){
+			loadSensorData( 1 );
+		}
+		document.querySelector( 'button.week' ).onclick = function(){
+			loadSensorData( 7 );
+		}
+		document.querySelector( 'button.month' ).onclick = function(){
+			loadSensorData( 31 );
+		}
+		document.querySelector( 'button.grow' ).onclick = function(){
+			loadSensorData( 63 );
+		}
+		
 		document.querySelector( 'i.fa-cog' ).onclick = function(){
 			push( new SetupActivity( service, setup ) );
 		}
@@ -109,6 +151,13 @@ class MainActivity extends Activity {
 		//btn.classList.add( 'active' );
 		service.requestSensorRead().then( function(r){
 			//trace(r);
+		});
+	}
+
+	function loadSensorData( days : Int ) {
+		element.style.display = 'none';
+		service.loadDataForDays( days ).then( function(data){
+			replace( new MainActivity( service, setup, data ) );
 		});
 	}
 }
